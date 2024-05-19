@@ -106,6 +106,7 @@ const Home: React.FC = () => {
     };
     setImageDetailsArray(prevArray => [...prevArray, zeroDetails]);
 };
+
   
 
       const handleDelete = () => {
@@ -168,6 +169,8 @@ const Home: React.FC = () => {
         <option value="10">10</option>
         <option value="11">11</option>
         <option value="12">12</option>
+        <option value="13">13</option>
+        <option value="14">14</option>
          </select> </p>
             <Button onClick={handleClick} label="Append This" className="mt-4 mr-2" />
             <Button onClick={handleZero} label="Send Zero" className='mt-4 mr-2'/>
