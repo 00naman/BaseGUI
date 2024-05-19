@@ -3,6 +3,8 @@
 const express = require('express');
 const net = require('net');
 const path = require('path')
+require('dotenv').config()
+
 
 const app = express();
 app.use(express.json());
@@ -75,8 +77,10 @@ app.post('/api/processImageDetails', (req, res) => {
 
   // Establish a TCP connection to the Python server
   const client = new net.Socket();
-  client.connect(7076, '192.168.88.131', () => {
-      console.log(`Connected to Python server`);
+  const portnumber = process.env.PORTNUM || 7000
+  const ipadd = process.env.IPADD || '192.168.88.131'
+  client.connect(portnumber, ipadd, () => {
+      console.log(`Connected to Python server at`,{portnumber},);
       client.write(JSON.stringify(imageDetailsArray)); // Send the image details array
   });
 
