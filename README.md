@@ -1,5 +1,7 @@
 ODLC GUI for the base station
 
+requires node and npm installed 
+
 TO RUN ---
 TERMINAL 1 --
 cd frontend/src
