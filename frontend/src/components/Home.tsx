@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Button from './Button';
+import Modal from './Modal';
 
 interface ImageDetails {
     latitude: string;
@@ -20,7 +21,9 @@ const Home: React.FC = () => {
     const [imageDetails, setImageDetails] = useState<ImageDetails|null>(null); // Store image details
     const [imageDetailsArray, setImageDetailsArray] = useState<ImageDetails[]>([]);    
     const [lastSelectedIndex, setLastSelectedIndex] = useState<number>(0); // Store the index of the last selected image
-    const [pinNumber, setPinNumber] = useState<string>('10'); // Store the selected number
+    const [pinNumber, setPinNumber] = useState<string>(''); // Store the selected number
+    const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+    const [modalMessage, setModalMessage] = useState<string>('');
 
 
     
@@ -141,6 +144,18 @@ const Home: React.FC = () => {
   const handlePrevImage = () => {
       setSelectedIndex((prevIndex) => (prevIndex > 0 ? prevIndex - 1 : prevIndex));
   };
+
+
+  const handlePinChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newPinNumber = e.target.value;
+    setModalMessage(`You selected pin number ${newPinNumber}`);
+    setIsModalOpen(true);
+    setPinNumber(newPinNumber);
+};
+
+  const closeModal = () => {
+      setIsModalOpen(false);
+  };
   
     return (
         <div className="flex">
@@ -165,7 +180,8 @@ const Home: React.FC = () => {
             <p>X offset: {imageDetails.x_coordinate}</p>
             <p>Y offset: {imageDetails.y_coordinate}</p>
             <p>Counter: {imageDetails.counter}</p>
-            <p>Pin Number:<select  value={pinNumber} onChange={(e) => setPinNumber(e.target.value)} className="block w-full mt-1 p-2">
+            <p>Pin Number:<select  value={pinNumber} onChange={handlePinChange} className="block w-full mt-1 p-2 bg-gray-200">
+        <option value="0">CLICK</option>
         <option value="10">10</option>
         <option value="11">11</option>
         <option value="12">12</option>
@@ -175,6 +191,7 @@ const Home: React.FC = () => {
             <Button onClick={handleClick} label="Append This" className="mt-4 mr-2" />
             <Button onClick={handleZero} label="Send Zero" className='mt-4 mr-2'/>
             <Button onClick={handleDelete} label="Delete Latest" className="mt-2" />
+            <Modal isOpen={isModalOpen} onClose={closeModal} message={modalMessage} />
           </div>
         )}
         {imageDetailsArray.length > 0 && (
