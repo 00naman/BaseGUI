@@ -12,7 +12,7 @@ python rocketserver.py
 TERMINAL 2 --
 Once the camera is clicking pictures only then
 cd frontend/src
-python detections.py
+python detections.py , because this code is accessing the folder 'images'
 
 TERMINAL 3 --
 cd backend
