@@ -14,6 +14,10 @@ interface ImageDetails {
 }
 
 
+const imagesContext = (require as any).context('../images', false, /\.(jpg|jpeg|png|gif)$/);
+const yoloImagesContext = (require as any).context('../yoloimages', false, /\.(jpg|jpeg|png|gif)$/);
+
+
 
 const Home: React.FC = () => {
     const [images, setImages] = useState<string[]>([]); // Store image file paths
@@ -24,24 +28,25 @@ const Home: React.FC = () => {
     const [pinNumber, setPinNumber] = useState<string>(''); // Store the selected number
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [modalMessage, setModalMessage] = useState<string>('');
+    const [currentFolder, setCurrentFolder] = useState<string>('images'); // Store the current image folder
 
 
-    
 
     useEffect(() => {
-        const importImages = () => {
-            const requireWithContext = (require as any).context('../images', false, /\.(jpg|jpeg|png|gif)$/);
-            const imagesArray: string[] = requireWithContext.keys().map((key: string) => requireWithContext(key));
-            setImages(imagesArray);
-            setLastSelectedIndex(imagesArray.length - 1);
-        };
+      const importImages = () => {
+        const requireWithContext = currentFolder === 'images' ? imagesContext : yoloImagesContext;
+        const imagesArray: string[] = requireWithContext.keys().map((key: string) => requireWithContext(key));
+        setImages(imagesArray);
+        setLastSelectedIndex(imagesArray.length - 1);
+    };
+    
 
         importImages();
 
         const intervalId = setInterval(importImages, 5000); // Check every 5 seconds for changes in the images folder
 
         return () => clearInterval(intervalId); // Cleanup function to clear the interval on component unmount
-    }, []);
+    }, [currentFolder]);
 
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
@@ -145,6 +150,11 @@ const Home: React.FC = () => {
       setSelectedIndex((prevIndex) => (prevIndex > 0 ? prevIndex - 1 : prevIndex));
   };
 
+  const handleYoloClick = () => {
+    setCurrentFolder((prevFolder) => (prevFolder === 'images' ? 'yoloimages' : 'images'));
+};
+
+
 
   const handlePinChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newPinNumber = e.target.value;
@@ -156,6 +166,7 @@ const Home: React.FC = () => {
   const closeModal = () => {
       setIsModalOpen(false);
   };
+  
   
     return (
         <div className="flex">
@@ -169,7 +180,8 @@ const Home: React.FC = () => {
             <div className="w-1/4 p-4">
             <div className='pl-3'>Image No: {selectedIndex+1}
             <Button onClick={handlePrevImage} label="Prev" className="ml-2" />
-                    <Button onClick={handleNextImage} label="Next" className="ml-2" /></div>
+                    <Button onClick={handleNextImage} label="Next" className="ml-2" />
+                    <Button onClick={handleYoloClick} label = "YOLO" className='ml-2'/></div>
             <Button onClick={handleCenter} label="Click For Centering" className="mt-2"/>
             {imageDetails && (
           <div>
