@@ -193,17 +193,19 @@ const Home: React.FC = () => {
             <p>Y offset: {imageDetails.y_coordinate}</p>
             <p>Counter: {imageDetails.counter}</p>
             <p>Pin Number:<select  value={pinNumber} onChange={handlePinChange} className="block w-full mt-1 p-2 bg-gray-200">
-        <option value="0">CLICK</option>
-        <option value="10">10</option>
-        <option value="11">11</option>
-        <option value="12">12</option>
-        <option value="13">13</option>
-        <option value="14">14</option>
+              <option value="0">CLICK</option>
+              <option value="10">10</option>
+              <option value="11">11</option>
+              <option value="12">12</option>
+              <option value="13">13</option>
+              <option value="14">14</option>
          </select> </p>
-            <Button onClick={handleClick} label="Append This" className="mt-4 mr-2" />
+         <div>
+            <Button onClick={handleClick} label="Append" className="mt-4 mr-2" />
             <Button onClick={handleZero} label="Send Zero" className='mt-4 mr-2'/>
             <Button onClick={handleDelete} label="Delete Latest" className="mt-2" />
             <Modal isOpen={isModalOpen} onClose={closeModal} message={modalMessage} />
+            </div>
           </div>
         )}
         {imageDetailsArray.length > 0 && (
@@ -218,8 +220,10 @@ const Home: React.FC = () => {
               ))}
             </ul>
           </div>
-        )}      
+        )}     
+        <div className='flex flex-col'>
         <Button onClick={handleSend} label="DONT CLICK UNTIL DONE" className="mt-2" />
+        </div>
 
       </div>
         </div>

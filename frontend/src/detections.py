@@ -9,7 +9,9 @@ class Classifier:
     def __init__(self, weights_path='best.pt'):
         # Load model
         self.model = YOLO(weights_path)
+        print(torch.cuda.is_available())
         if torch.cuda.is_available():
+            print("success")
             self.model.cuda()
         print('Model loaded successfully')
 
@@ -73,7 +75,7 @@ def process_new_images(classifier, input_folder='images', output_folder='yoloima
                     print(f"Failed to process {file_path}: {e}")
 
         # Sleep for a while before checking for new images again
-        time.sleep(5)
+        time.sleep(1)
 
 if __name__ == '__main__':
     classifier = Classifier('best.pt')
