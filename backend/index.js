@@ -79,6 +79,7 @@ app.post('/api/processImageDetails', (req, res) => {
   const client = new net.Socket();
   const portnumber = process.env.PORTNUM || 7000
   const ipadd = process.env.IPADD || '192.168.88.131'
+  console.log(imageDetailsArray)
   client.connect(portnumber, ipadd, () => {
       console.log(`Connected to Python server at`,{portnumber},);
       client.write(JSON.stringify(imageDetailsArray)); // Send the image details array
