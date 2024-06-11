@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Button from './Button';
 import Modal from './Modal';
+import ImageGallery from './Scroll';
 
 interface ImageDetails {
     latitude: string;
@@ -179,6 +180,7 @@ const Home: React.FC = () => {
             
             <div className="w-1/4 p-4">
             <div className='pl-3'>Image No: {selectedIndex+1}
+              <ImageGallery/>
             <Button onClick={handlePrevImage} label="Prev" className="ml-2" />
                     <Button onClick={handleNextImage} label="Next" className="ml-2" />
                     <Button onClick={handleYoloClick} label = "YOLO" className='ml-2'/></div>

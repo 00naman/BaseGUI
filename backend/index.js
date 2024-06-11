@@ -3,15 +3,44 @@
 const express = require('express');
 const net = require('net');
 const path = require('path')
-require('dotenv').config()
+const fs = require('fs');
+const cors = require('cors');
 
+
+require('dotenv').config()
 
 const app = express();
 app.use(express.json());
+app.use(cors());
+
 
 
 
 const imagesFolderPath = path.join(__dirname, "../frontend/src/images");
+
+
+app.get('/images/:folder', (req, res) => {
+  const folder = req.params.folder;
+  // Correctly construct the path to the directory
+  const directoryPath = path.join(__dirname,'..','frontend', 'public', 'boundingbox', folder);
+
+  // Check if directory exists
+  if (!fs.existsSync(directoryPath)) {
+      return res.status(404).send({ message: "Directory not found!" });
+  }
+
+  // Attempt to read the directory
+  fs.readdir(directoryPath, (err, files) => {
+      if (err) {
+          console.error(err); // Log the error to the console
+          return res.status(500).send({ message: "Unable to scan files!" });
+      }
+      const imageFiles = files.filter(file => /\.(jpg|jpeg|png|gif)$/i.test(file))
+                             .map(file => `/boundingbox/${folder}/${file}`);
+      res.send(imageFiles);
+  });
+});
+
 
 // Endpoint to get the URL of the latest image
 app.get("/api/latestImage", (req, res) => {
