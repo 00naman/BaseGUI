@@ -1,12 +1,13 @@
 import os
 import cv2
-import time
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
 from ultralytics import YOLO
 import torch
+import time
 
 class Classifier:
     def __init__(self, weights_path='best.pt'):
-        # Load model
         self.model = YOLO(weights_path)
         if torch.cuda.is_available():
             self.model.cuda()
@@ -29,21 +30,25 @@ class Classifier:
                 x2 = min(width, x2 + padding)
                 y2 = min(height, y2 + padding)
 
+                # Calculate center pixel coordinates
+                cx = int((x1 + x2) / 2)
+                cy = int((y1 + y2) / 2)
+
                 # Draw bounding boxes on the original image
                 cv2.rectangle(img, (int(x1), int(y1)), (int(x2), int(y2)), (0, 0, 255), 2)
                 boxes_drawn = True
 
                 # Crop the bounding box region
                 cropped_img = img[int(y1):int(y2), int(x1):int(x2)]
-                detections.append((cropped_img, i))
+                detections.append((cropped_img, i, cx, cy))
 
         # Create a folder and save detections only if there are any
         if detections:
             image_specific_folder = os.path.join(bbox_folder, str(folder_counter))
             os.makedirs(image_specific_folder, exist_ok=True)
 
-            for cropped_img, i in detections:
-                bbox_path = os.path.join(image_specific_folder, f'{os.path.splitext(os.path.basename(img_path))[0]}_bbox_{i}.jpg')
+            for cropped_img, i, cx, cy in detections:
+                bbox_path = os.path.join(image_specific_folder, f'{os.path.splitext(os.path.basename(img_path))[0]}_bbox_{i}_center_{cx}_{cy}.jpg')
                 cv2.imwrite(bbox_path, cropped_img)
 
             # Save processed image with boxes drawn
@@ -52,31 +57,54 @@ class Classifier:
             if boxes_drawn:
                 cv2.imwrite(output_path, img)
                 print(f'Processed image with bounding boxes saved to {output_path}')
-            else:
+                return True
+            else:   
                 print('No bounding boxes detected, folder not created.')
+                return False
         else:
             print('No bounding boxes detected, folder not created.')
 
-def process_new_images(classifier, input_folder='images', output_folder='yoloimages', bbox_folder='../public/boundingbox'):
-    processed_files = set()
-    folder_counter = 1  # Initialize folder counter
+class FileWatcher:
+    def __init__(self, input_folder, classifier):
+        self.input_folder = input_folder
+        self.classifier = classifier
+        self.observer = Observer()
+        self.folder_counter = 1  # Initialize counter to manage output directories
 
-    while True:
-        files = os.listdir(input_folder)
-        new_files = [f for f in files if f not in processed_files]
+    def run(self):
+        self.process_existing_files()  # Process existing files first
+        event_handler = NewImageHandler(self.input_folder, self.classifier, self.folder_counter)
+        self.observer.schedule(event_handler, self.input_folder, recursive=False)
+        self.observer.start()
+        try:
+            while True:
+                time.sleep(1)
+        except KeyboardInterrupt:
+            self.observer.stop()
+            print("Observer stopped")
+        self.observer.join()
 
-        for file in new_files:
-            file_path = os.path.join(input_folder, file)
-            if os.path.isfile(file_path):
-                try:
-                    classifier.classify(file_path, output_folder, bbox_folder, folder_counter)
-                    if os.path.exists(os.path.join(bbox_folder, str(folder_counter))):  # Check if a folder was created
-                        processed_files.add(file)
-                        folder_counter += 1  # Increment only if a folder was actually created
-                except Exception as e:
-                    print(f"Failed to process {file_path}: {e}")
-        time.sleep(1)
+    def process_existing_files(self):
+        for filename in os.listdir(self.input_folder):
+            filepath = os.path.join(self.input_folder, filename)
+            if os.path.isfile(filepath) and filepath.lower().endswith(('.png', '.jpg', '.jpeg')):
+                print(f'Processing existing image: {filepath}')
+                if self.classifier.classify(filepath, 'yoloimages', '../public/boundingbox', self.folder_counter):
+                    self.folder_counter += 1
+
+class NewImageHandler(FileSystemEventHandler):
+    def __init__(self, input_folder, classifier, folder_counter):
+        self.input_folder = input_folder
+        self.classifier = classifier
+        self.folder_counter = folder_counter
+
+    def on_created(self, event):
+        if not event.is_directory and any(event.src_path.endswith(ext) for ext in ['.jpg', '.jpeg', '.png']):
+            print(f'New image detected: {event.src_path}')
+            if self.classifier.classify(event.src_path, 'yoloimages', '../public/boundingbox', self.folder_counter):
+                self.folder_counter += 1
 
 if __name__ == '__main__':
     classifier = Classifier('best.pt')
-    process_new_images(classifier)
+    watcher = FileWatcher('images', classifier)
+    watcher.run()

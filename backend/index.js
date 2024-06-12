@@ -101,6 +101,18 @@ app.post('/api/imageDetails', (req, res) => {
     res.json({ counter, latitude, longitude, alt, yaw, x_coordinate, y_coordinate});
 });
 
+app.post('/image-click', (req, res) => {
+  const { imageName } = req.body;
+  newName = imageName.replace(/\.jpg$/, '');
+  const [counter,latitude,longitude,alt,yaw,notneed,notneed2,notneed3,pixelX,pixelY] = newName.split('_');
+  pixel_offset_x = pixelX - (3984/2)
+  pixel_offset_y = pixelY - (2656/2)
+  x_coordinate = pixel_offset_x * 0.0071
+  y_coordinate = pixel_offset_y * -0.0071
+  console.log(x_coordinate,y_coordinate)
+  res.json({ counter, latitude, longitude, alt, yaw, x_coordinate, y_coordinate});
+});
+
 app.post('/api/processImageDetails', (req, res) => {
   const imageDetailsArray = req.body;
 

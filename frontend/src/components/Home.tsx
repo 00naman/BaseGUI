@@ -15,12 +15,15 @@ interface ImageDetails {
 }
 
 
+
 const imagesContext = (require as any).context('../images', false, /\.(jpg|jpeg|png|gif)$/);
 const yoloImagesContext = (require as any).context('../yoloimages', false, /\.(jpg|jpeg|png|gif)$/);
 
 
 
 const Home: React.FC = () => {
+    const [folderIndex, setFolderIndex] = useState<number>(1); // New state for managing folder index
+    const [images2, setImages2] = useState<string[]>([]); // Store image file paths
     const [images, setImages] = useState<string[]>([]); // Store image file paths
     const [selectedIndex, setSelectedIndex] = useState<number>(0); // Store the index of the selected image
     const [imageDetails, setImageDetails] = useState<ImageDetails|null>(null); // Store image details
@@ -29,7 +32,89 @@ const Home: React.FC = () => {
     const [pinNumber, setPinNumber] = useState<string>(''); // Store the selected number
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [modalMessage, setModalMessage] = useState<string>('');
-    const [currentFolder, setCurrentFolder] = useState<string>('images'); // Store the current image folder
+    const [currentFolder, setCurrentFolder] = useState<string>('images'); // Store the current image folder\
+    const [lastUpdated, setLastUpdated] = useState<'imageDetails' | 'clickedImageData'>();  // This will track which data was last updated
+    const [clickedImageData, setClickedImageData] = useState({
+      counter: '',
+      latitude: '',
+      longitude: '',
+      alt: '',
+      yaw: '',
+      x_coordinate: '',
+      y_coordinate: '',
+    });
+
+    useEffect(() => {
+      if (imageDetails && Object.keys(imageDetails).length > 0) {
+          setLastUpdated('imageDetails');
+      }
+  }, [imageDetails]);
+  
+  useEffect(() => {
+      if (clickedImageData && clickedImageData.counter !== '') { // Assuming counter being empty means not initialized
+          setLastUpdated('clickedImageData');
+      }
+  }, [clickedImageData]);
+
+
+    useEffect(() => {
+      async function fetchImages() {
+          try {
+              const response = await fetch(`http://localhost:5000/images/${folderIndex}`);
+              if (!response.ok) {
+                  throw new Error('Network response was not ok');
+              }
+              const imageUrls = await response.json() as string[];
+              setImages2(imageUrls);
+          } catch (error) {
+              console.error("Failed to load images:", error);
+              setImages2([]);
+          }
+      }
+
+      fetchImages();
+  }, [folderIndex]);
+
+  const handleImageClick2 = async (imageName: string): Promise<void> => {
+    try {
+      const response = await fetch('http://localhost:5000/image-click', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ imageName: imageName.split('/').pop() || '' })
+      });
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      const data = await response.json();
+      setClickedImageData({
+        counter: data.counter,
+        latitude: data.latitude,
+        longitude: data.longitude,
+        alt: data.alt,
+        yaw: data.yaw,
+        x_coordinate: data.x_coordinate,
+        y_coordinate: data.y_coordinate
+      });
+    } catch (error) {
+      console.error('Failed to send image name and receive data:', error);
+    }
+  };
+
+
+  useEffect(() => {
+      const handleKeyDown = (event: KeyboardEvent) => {
+          if (event.key === 'ArrowRight') {
+              setFolderIndex(prev => prev + 1);
+          } else if (event.key === 'ArrowLeft') {
+              setFolderIndex(prev => Math.max(prev - 1, 1));
+          }
+      };
+
+      window.addEventListener('keydown', handleKeyDown);
+      return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
 
 
@@ -95,10 +180,17 @@ const Home: React.FC = () => {
     };
 
     const handleClick = () => {
-      if (imageDetails) {
+      const confirm = window.confirm("Have you selected the right pin number?");
+      if (!confirm) {
+          return; // If user does not confirm, do not proceed
+      }
+      if (lastUpdated === 'imageDetails' && imageDetails) {
           // Append the selected number to the image details
           const updatedDetails = { ...imageDetails, pinNumber };
           setImageDetailsArray(prevArray => [...prevArray, updatedDetails]);
+      } else if (lastUpdated === 'clickedImageData' && clickedImageData) {
+        const updatedDetails2 = { ...clickedImageData, pinNumber };
+          setImageDetailsArray(prevArray => [...prevArray, updatedDetails2]);
       }
   };
 
@@ -127,17 +219,21 @@ const Home: React.FC = () => {
       };
 
       const handleSend = async () => {
-        try {
-          console.log(imageDetailsArray);
-          // Send the imageDetailsArray to the server
-          const response = await axios.post('/api/processImageDetails', imageDetailsArray);
-          console.log('Image details sent successfully:', response.data);
-          // Clear the imageDetailsArray after sending
-          setImageDetailsArray([]);
-        } catch (error) {
-          console.error('Error sending image details to server:', error);
+        // Confirmation dialog
+        const confirm = window.confirm("Are you sure you want to send the details? This action cannot be undone.");
+        if (confirm) {
+            try {
+                console.log(imageDetailsArray);
+                // Send the imageDetailsArray to the server
+                const response = await axios.post('/api/processImageDetails', imageDetailsArray);
+                console.log('Image details sent successfully:', response.data);
+                // Clear the imageDetailsArray after sending
+                setImageDetailsArray([]);
+            } catch (error) {
+                console.error('Error sending image details to server:', error);
+            }
         }
-      };
+    };
       
       const handleCenter = () => {
         setSelectedIndex(lastSelectedIndex);
@@ -180,20 +276,31 @@ const Home: React.FC = () => {
             
             <div className="w-1/4 p-4">
             <div className='pl-3'>Image No: {selectedIndex+1}
-              <ImageGallery/>
-            <Button onClick={handlePrevImage} label="Prev" className="ml-2" />
-                    <Button onClick={handleNextImage} label="Next" className="ml-2" />
-                    <Button onClick={handleYoloClick} label = "YOLO" className='ml-2'/></div>
-            <Button onClick={handleCenter} label="Click For Centering" className="mt-2"/>
-            {imageDetails && (
-          <div>
-    
-            <p>Latitude: {imageDetails.latitude}</p>
-            <p>Longitude: {imageDetails.longitude}</p>
-            <p>Yaw: {imageDetails.yaw}</p>
-            <p>X offset: {imageDetails.x_coordinate}</p>
-            <p>Y offset: {imageDetails.y_coordinate}</p>
-            <p>Counter: {imageDetails.counter}</p>
+              <div className='flex flex-row gap-2'>
+            {images2.map((src, index) => (
+            <img key={index} src={src} alt={`Folder ${folderIndex} Image ${index}`}
+             onClick={() => handleImageClick2(src)}
+             style={{ maxWidth: '100%' }} />  
+              ))}
+              </div>
+            <div>
+        {/* <p>Counter: {clickedImageData.counter}</p>
+        <p>Latitude: {clickedImageData.latitude}</p>
+        <p>Longitude: {clickedImageData.longitude}</p>
+        <p>Altitude: {clickedImageData.alt}</p>
+        <p>Yaw: {clickedImageData.yaw}</p> */}
+        <p>X offset: {clickedImageData.x_coordinate}</p>
+        <p>Y offset: {clickedImageData.y_coordinate}</p>
+      </div>
+            {/* <Button onClick={handlePrevImage} label="Prev" className="ml-2" />
+                    <Button onClick={handleNextImage} label="Next" className="ml-2" /> */}
+          </div>
+            <div>
+            <Button onClick={handleYoloClick} label = "YOLO" className='mr-2 mt-4'/>
+            <Button onClick={handleClick} label="Append" className="mt-4 mr-2" />
+            <Button onClick={handleZero} label="Send Zero" className='mt-4 mr-2'/>
+            <Button onClick={handleDelete} label="Delete Latest" className="mt-2 mr-4" />
+            <Button onClick={handleCenter} label="Center" className="mt-2 mr-4"/>
             <p>Pin Number:<select  value={pinNumber} onChange={handlePinChange} className="block w-full mt-1 p-2 bg-gray-200">
               <option value="0">CLICK</option>
               <option value="10">10</option>
@@ -202,12 +309,16 @@ const Home: React.FC = () => {
               <option value="13">13</option>
               <option value="14">14</option>
          </select> </p>
-         <div>
-            <Button onClick={handleClick} label="Append" className="mt-4 mr-2" />
-            <Button onClick={handleZero} label="Send Zero" className='mt-4 mr-2'/>
-            <Button onClick={handleDelete} label="Delete Latest" className="mt-2" />
             <Modal isOpen={isModalOpen} onClose={closeModal} message={modalMessage} />
             </div>
+            {imageDetails && ( 
+          <div>
+            {/* <p>Latitude: {imageDetails.latitude}</p>
+            <p>Longitude: {imageDetails.longitude}</p>
+            <p>Yaw: {imageDetails.yaw}</p> */}
+            <p>X offset: {imageDetails.x_coordinate}</p>
+            <p>Y offset: {imageDetails.y_coordinate}</p>
+            {/* <p>Counter: {imageDetails.counter}</p> */}
           </div>
         )}
         {imageDetailsArray.length > 0 && (
