@@ -180,7 +180,7 @@ const Home: React.FC = () => {
     };
 
     const handleClick = () => {
-      const confirm = window.confirm("Have you selected the right pin number?");
+      const confirm = window.confirm(`You have selected pin number ${pinNumber}`);
       if (!confirm) {
           return; // If user does not confirm, do not proceed
       }
@@ -255,8 +255,7 @@ const Home: React.FC = () => {
 
   const handlePinChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newPinNumber = e.target.value;
-    setModalMessage(`You selected pin number ${newPinNumber}`);
-    setIsModalOpen(true);
+    // window.alert(`You selected pin number ${newPinNumber}`);
     setPinNumber(newPinNumber);
 };
 
@@ -284,16 +283,14 @@ const Home: React.FC = () => {
               ))}
               </div>
             <div>
-        {/* <p>Counter: {clickedImageData.counter}</p>
+        <p>Counter: {clickedImageData.counter}</p>
         <p>Latitude: {clickedImageData.latitude}</p>
         <p>Longitude: {clickedImageData.longitude}</p>
-        <p>Altitude: {clickedImageData.alt}</p>
-        <p>Yaw: {clickedImageData.yaw}</p> */}
+        {/* <p>Altitude: {clickedImageData.alt}</p> */}
+        <p>Yaw: {clickedImageData.yaw}</p>
         <p>X offset: {clickedImageData.x_coordinate}</p>
         <p>Y offset: {clickedImageData.y_coordinate}</p>
       </div>
-            {/* <Button onClick={handlePrevImage} label="Prev" className="ml-2" />
-                    <Button onClick={handleNextImage} label="Next" className="ml-2" /> */}
           </div>
             <div>
             <Button onClick={handleYoloClick} label = "YOLO" className='mr-2 mt-4'/>
@@ -301,6 +298,8 @@ const Home: React.FC = () => {
             <Button onClick={handleZero} label="Send Zero" className='mt-4 mr-2'/>
             <Button onClick={handleDelete} label="Delete Latest" className="mt-2 mr-4" />
             <Button onClick={handleCenter} label="Center" className="mt-2 mr-4"/>
+            <Button onClick={handlePrevImage} label="Prev" className="ml-2" />
+                    <Button onClick={handleNextImage} label="Next" className="ml-2" />
             <p>Pin Number:<select  value={pinNumber} onChange={handlePinChange} className="block w-full mt-1 p-2 bg-gray-200">
               <option value="0">CLICK</option>
               <option value="10">10</option>
@@ -313,12 +312,12 @@ const Home: React.FC = () => {
             </div>
             {imageDetails && ( 
           <div>
-            {/* <p>Latitude: {imageDetails.latitude}</p>
+            <p>Counter: {imageDetails.counter}</p>
+            <p>Latitude: {imageDetails.latitude}</p>
             <p>Longitude: {imageDetails.longitude}</p>
-            <p>Yaw: {imageDetails.yaw}</p> */}
+            <p>Yaw: {imageDetails.yaw}</p>
             <p>X offset: {imageDetails.x_coordinate}</p>
             <p>Y offset: {imageDetails.y_coordinate}</p>
-            {/* <p>Counter: {imageDetails.counter}</p> */}
           </div>
         )}
         {imageDetailsArray.length > 0 && (
