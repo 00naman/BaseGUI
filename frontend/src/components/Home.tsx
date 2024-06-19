@@ -292,14 +292,18 @@ const Home: React.FC = () => {
         <p>Y offset: {clickedImageData.y_coordinate}</p>
       </div>
           </div>
-            <div>
+            <div className='flex flex-row'>
             <Button onClick={handleYoloClick} label = "YOLO" className='mr-2 mt-4'/>
             <Button onClick={handleClick} label="Append" className="mt-4 mr-2" />
             <Button onClick={handleZero} label="Send Zero" className='mt-4 mr-2'/>
+            </div>
+            <div className='flex flex-row'>
             <Button onClick={handleDelete} label="Delete Latest" className="mt-2 mr-4" />
-            <Button onClick={handleCenter} label="Center" className="mt-2 mr-4"/>
-            <Button onClick={handlePrevImage} label="Prev" className="ml-2" />
-                    <Button onClick={handleNextImage} label="Next" className="ml-2" />
+            <Button onClick={handleCenter} label="Click for centering" className="mt-2 mr-4"/>
+            <Button onClick={handlePrevImage} label="Prev" className="mt-2 mr-4" />
+            <Button onClick={handleNextImage} label="Next" className="mt-2" />
+            </div>
+            <div>
             <p>Pin Number:<select  value={pinNumber} onChange={handlePinChange} className="block w-full mt-1 p-2 bg-gray-200">
               <option value="0">CLICK</option>
               <option value="10">10</option>
