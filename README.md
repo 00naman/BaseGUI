@@ -1,15 +1,18 @@
-ODLC GUI for the base station
+# ODLC Base Station GUI
 
-requires node and npm installed 
+This project provides a Graphical User Interface (GUI) for the ODLC (Object Detection and Localization Challenge) base station, supporting both frontend and backend integration.
 
-TO RUN ---
-TERMINAL 1 --
-cd frontend/src
-python rocketserver.py
+## Prerequisites
 
-TERMINAL 2 --
-cd backend
-nodemon index.js
-cd ..
-cd frontend
-npm start
+Make sure you have the following installed before running the project:
+
+- [Node.js](https://nodejs.org/en/) (includes npm)
+- [Python](https://www.python.org/)
+
+### Install Node.js and npm:
+
+To check if Node.js and npm are installed, run:
+
+```bash
+node -v
+npm -v
